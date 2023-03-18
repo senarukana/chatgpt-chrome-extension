@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Ask ChatGPT",
+  "name": "ChatGPT-Rewrite",
   "version": "1.0.0",
-  "permissions": ["contextMenus"],
+  "permissions": ["contextMenus", "clipboardRead", "clipboardWrite"],
   "icons": {
     "16": "icon.png",
     "48": "icon.png",
@@ -16,5 +16,13 @@
       "matches": ["<all_urls>"],
       "js": ["content.js"]
     }
-  ]
+  ],
+  "commands": {
+    "chatgpt_rewrite": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+M"
+      },
+      "description": "rewrite with chatgpt"
+    }
+  }
 }

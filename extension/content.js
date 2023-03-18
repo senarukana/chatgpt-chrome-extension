@@ -1,6 +1,6 @@
 // Listen for messages from the background script
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.type === "ASK_CHATGPT") {
+  if (message.type === "CHATGPT_REWRITE") {
     let originalActiveElement;
     let text;
 
@@ -21,16 +21,23 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       // If no active text input use any selected text on page
       text = document.getSelection().toString().trim();
     }
-
+    // use the clipboard if no text is selected
     if (!text) {
-      alert(
-        "No text found. Select this option after right clicking on a textarea that contains text or on a selected portion of text."
-      );
-      return;
+        navigator.clipboard.readText().then((t) => {
+            if (t) {
+              showLoadingCursor();
+              sendToGpt(originalActiveElement, "rewrite: " + t)
+            }
+        });
+        return;
+    } else {
+      sendToGpt(originalActiveElement, "rewrite: " + text);
+      showLoadingCursor();
     }
+  }
+});
 
-    showLoadingCursor();
-
+function sendToGpt(originalActiveElement, text) {
     // Send the text to the API endpoint
     fetch("http://localhost:3000", {
       method: "POST",
@@ -45,7 +52,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         const activeElement =
           originalActiveElement ||
           (document.activeElement.isContentEditable && document.activeElement);
-
         if (activeElement) {
           if (
             activeElement.nodeName.toUpperCase() === "TEXTAREA" ||
@@ -79,21 +85,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             selection.collapse(replyNode, replyNode.length);
           }
         } else {
-          // Alert reply since no active text area
-          alert(`ChatGPT says: ${data.reply}`);
         }
-
+        copyToClipboard(data.reply);
         restoreCursor();
       })
       .catch((error) => {
         restoreCursor();
+        alert(error);
         alert(
           "Error. Make sure you're running the server by following the instructions on https://github.com/gragland/chatgpt-chrome-extension. Also make sure you don't have an adblocker preventing requests to localhost:3000."
         );
         throw new Error(error);
       });
-  }
-});
+}
 
 const showLoadingCursor = () => {
   const style = document.createElement("style");
@@ -105,3 +109,14 @@ const showLoadingCursor = () => {
 const restoreCursor = () => {
   document.getElementById("cursor_wait").remove();
 };
+
+function copyToClipboard(text) {
+  var input = document.createElement('textarea');
+  input.style.position = 'fixed';
+  input.style.opacity = '0';
+  input.value = text;
+  document.body.appendChild(input);
+  input.select();
+  document.execCommand('Copy');
+  document.body.removeChild(input);
+}

@@ -31,7 +31,7 @@ Add the extension
 3. Click "Load Unpacked" to see a file-selection dialog
 4. Select your local `chatgpt-chrome-extension/extension` directory
 
-You'll now see "Ask ChatGPT" if you right click in any text input or content editable area.
+You'll now see "ChatGPT Rewrite" if you right click in any text input or content editable area.
 
 ## Troubleshooting
 
